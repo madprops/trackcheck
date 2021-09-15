@@ -1,5 +1,6 @@
 const TC = {}
 TC.playing = 0
+TC.last_playing = 0
 TC.last_pos = 0
 TC.max_tracks = 8
 
@@ -82,6 +83,7 @@ TC.play = function (i) {
   let fileinput = track.querySelector(".track_file")
 
   if (i === TC.playing) {
+    TC.last_playing = TC.playing
     TC.playing = 0
     TC.last_pos = audio.currentTime
     audio.pause()
@@ -172,6 +174,7 @@ TC.start_controls = function () {
   let restart = document.querySelector("#ctl_restart")
   restart.addEventListener("click", function () {
     if (TC.playing === 0) {
+      TC.play(TC.last_playing)
       return
     }    
     let audio = TC.get_current_audio()
@@ -182,6 +185,7 @@ TC.start_controls = function () {
   let back = document.querySelector("#ctl_back")
   back.addEventListener("click", function () {
     if (TC.playing === 0) {
+      TC.play(TC.last_playing)
       return
     }    
     let audio = TC.get_current_audio()
@@ -192,6 +196,7 @@ TC.start_controls = function () {
   let forward = document.querySelector("#ctl_forward")
   forward.addEventListener("click", function () {
     if (TC.playing === 0) {
+      TC.play(TC.last_playing)
       return
     }    
     let audio = TC.get_current_audio()
