@@ -1,0 +1,69 @@
+body, html {
+  background-color: #1c1c1c;
+  color: white;
+  font-family: sans-serif;
+}
+
+#tracks {
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  gap: 2rem;
+}
+
+.track_container {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.track_number {
+  margin-right: 1rem;
+}
+
+.track_file {
+  margin-left: 2rem;
+}
+
+.button {
+  margin-right: 0.5rem;
+  border: 2px solid white;
+  padding: 0.25rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.button_active {
+  border: 2px solid #7ab97a;
+}
+
+.button:hover {
+  box-shadow: 0 0 1rem currentColor;
+}
+
+#progress_container {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  padding-left: 2rem;
+  padding-top: 2rem;
+  font-size: 1.4rem;
+}
+
+#progressbar {
+  width: 400px;
+  margin-left: 2rem;
+}
+
+#controls {
+  display: flex;
+  flex-direction: row;
+  padding: 2rem;
+}
+
+#info {
+  padding: 2rem;
+  padding-top: 1rem;
+  font-size: 1.2;
+}
