@@ -366,6 +366,7 @@ TC.clear_track_file = function (i) {
   if (confirm("Are you sure?")) {
     if (TC.playing === i) {
       TC.play(i)
+      TC.set_progressbar(0)
     }
     let track = TC.get_track(i)
     let input = track.querySelector(".track_file")
@@ -460,6 +461,7 @@ TC.remove_track = function (track) {
     let i = TC.get_track_index(track)
     if (TC.playing === i) {
       TC.play(i)
+      TC.set_progressbar(0)
     }
     track.parentNode.removeChild(track)
     TC.update_track_number()
