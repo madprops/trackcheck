@@ -73,11 +73,7 @@ TC.add_track = function () {
   file.type = "file"
   file.classList.add("track_file")
   file.addEventListener("change", function () {
-    if (this.value) {
-      TC.enable_play_button(this.parentNode)
-    } else {
-      TC.disable_play_button(this.parentNode)
-    }
+    TC.after_file_change(this)
   })
 
   let audio = document.createElement("audio")
@@ -106,7 +102,6 @@ TC.add_track = function () {
 TC.play = function (i, current_time = -1) {
   let track = TC.get_track(i)
   let audio = track.querySelector(".audio")
-  let fileinput = track.querySelector(".track_file")
 
   if (i === TC.playing) {
     TC.last_playing = TC.playing
@@ -117,16 +112,8 @@ TC.play = function (i, current_time = -1) {
     return
   }
 
-  let files = fileinput.files
-
-  if (files.length === 0) {
-    return
-  }
-
-  let path = URL.createObjectURL(files[0])
   TC.pause_all()
-
-  audio.src = path
+  audio.src = TC.get_audio_path(i)
 
   if (current_time === -1) {
     audio.currentTime = TC.get_current_pos()
@@ -138,6 +125,17 @@ TC.play = function (i, current_time = -1) {
   TC.playing = i
 
   TC.highlight_play()
+}
+
+TC.get_audio_path = function (i) {
+  let track = TC.get_track(i)
+  let fileinput = track.querySelector(".track_file")
+  let files = fileinput.files
+  if (files.length === 0) {
+    return ""
+  }
+
+  return URL.createObjectURL(files[0])
 }
 
 TC.pause_all = function () {
@@ -199,8 +197,16 @@ TC.update_progressbar = function () {
   }
 
   let audio = TC.get_current_audio()
-  let prog = document.querySelector("#progressbar")
   let percentage = parseInt((audio.currentTime / audio.duration) * 100)
+  TC.set_progressbar(percentage)
+}
+
+TC.set_progressbar = function (percentage) {
+  if (isNaN(percentage)) {
+    return
+  }
+
+  let prog = document.querySelector("#progressbar")
   prog.value = percentage
 }
 
@@ -290,6 +296,7 @@ TC.go_up = function (i) {
 
   let track = TC.get_track(i)
   TC.move_track(track, dir)
+  let i2 = TC.get_track_index(track)
 
   if (TC.playing !== 0) {
     if (TC.playing === i) {
@@ -327,7 +334,7 @@ TC.go_down = function (i) {
     if (TC.last_playing === i) {
       TC.last_playing = i2
     }
-  }  
+  }
 
   TC.highlight_play()
   TC.update_track_number()
@@ -453,8 +460,10 @@ TC.remove_track = function (track) {
 
 TC.restart = function () {
   let audio = TC.get_current_audio()
+  audio.src = TC.get_audio_path(TC.playing)
   audio.currentTime = 0
   audio.play()
+  TC.set_progressbar(0)
 }
 
 TC.enable_play_button = function (track) {
@@ -465,4 +474,23 @@ TC.enable_play_button = function (track) {
 TC.disable_play_button = function (track) {
   let play = track.querySelector(".track_play")
   play.classList.add("button_disabled")
+}
+
+TC.after_file_change = function (fileinput) {
+  if (fileinput.value) {
+    TC.enable_play_button(fileinput.parentNode)
+  } else {
+    TC.disable_play_button(fileinput.parentNode)
+  }
+
+  let audio = fileinput.parentNode.querySelector(".audio")
+  audio.currentTime = 0
+
+  let i = TC.get_track_index(fileinput.parentNode)
+  if (i === TC.playing) {
+    TC.restart()
+  } else if (i === TC.last_playing) {
+    TC.last_pos = 0
+    TC.set_progressbar(0)
+  }
 }
