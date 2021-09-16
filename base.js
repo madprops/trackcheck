@@ -363,12 +363,12 @@ TC.move_track = function (elem, dir) {
 }
 
 TC.clear_track_file = function (i) {
-  if (confirm("Are you sure?")) {
+  let track = TC.get_track(i)
+  if (!TC.track_loaded(track) || confirm("Are you sure?")) {
     if (TC.playing === i) {
       TC.play(i)
       TC.set_progressbar(0)
     }
-    let track = TC.get_track(i)
     let input = track.querySelector(".track_file")
     input.value = []
     TC.disable_play_button(track)
@@ -457,7 +457,7 @@ TC.unmark = function () {
 }
 
 TC.remove_track = function (track) {
-  if (confirm("Are you sure?")) {
+  if (!TC.track_loaded(track) || confirm("Are you sure?")) {
     let i = TC.get_track_index(track)
     if (TC.playing === i) {
       TC.play(i)
@@ -514,11 +514,15 @@ TC.get_first_loaded_track = function () {
   let i = 1
   let tracks = TC.get_tracks()
   for (let track of tracks) {
-    let fileinput = track.querySelector(".track_file")
-    if (fileinput.files.length > 0) {
+    if (TC.track_loaded(track)) {
       return i
     }
     i += 1
   }
   return 0
+}
+
+TC.track_loaded = function (track) {
+  let fileinput = track.querySelector(".track_file")
+  return fileinput.files.length > 0
 }
