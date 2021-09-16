@@ -179,7 +179,9 @@ TC.start_controls = function () {
   let restart = document.querySelector("#ctl_restart")
   restart.addEventListener("click", function () {
     if (TC.playing === 0) {
-      TC.play(TC.last_playing)
+      if (TC.last_playing !== 0) {
+        TC.play(TC.last_playing)
+      }
       return
     }    
     let audio = TC.get_current_audio()
@@ -190,9 +192,11 @@ TC.start_controls = function () {
   let back = document.querySelector("#ctl_back")
   back.addEventListener("click", function () {
     if (TC.playing === 0) {
-      TC.play(TC.last_playing)
+      if (TC.last_playing !== 0) {
+        TC.play(TC.last_playing)
+      }
       return
-    }    
+    }     
     let audio = TC.get_current_audio()
     audio.currentTime = audio.currentTime - 5
     audio.play()
@@ -201,9 +205,11 @@ TC.start_controls = function () {
   let forward = document.querySelector("#ctl_forward")
   forward.addEventListener("click", function () {
     if (TC.playing === 0) {
-      TC.play(TC.last_playing)
+      if (TC.last_playing !== 0) {
+        TC.play(TC.last_playing)
+      }
       return
-    }    
+    }   
     let audio = TC.get_current_audio()
     audio.currentTime = audio.currentTime + 5
     audio.play()
