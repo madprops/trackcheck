@@ -30,7 +30,7 @@ TC.add_track = function () {
 
   let play = document.createElement("div")
   play.classList.add("track_play")
-  play.classList.add("track_play_disabled")
+  play.classList.add("button_disabled")
   play.classList.add("button")
   play.textContent = "Play"
   play.addEventListener("click", function () {
@@ -290,10 +290,12 @@ TC.go_up = function (i) {
 
   TC.move_track(TC.get_track(i), dir)
 
-  if (TC.playing === i) {
-    TC.playing = i - 1
-  } else if (TC.playing === i - 1) {
-    TC.playing = i
+  if (TC.playing !== 0) {
+    if (TC.playing === i) {
+      TC.playing = i - 1
+    } else if (TC.playing === i - 1) {
+      TC.playing = i
+    }
   }
 
   TC.highlight_play()
@@ -308,10 +310,12 @@ TC.go_down = function (i) {
 
   TC.move_track(TC.get_track(i), dir)
 
-  if (TC.playing === i) {
-    TC.playing = i + 1
-  } else if (TC.playing === i + 1) {
-    TC.playing = i
+  if (TC.playing !== 0) {
+    if (TC.playing === i) {
+      TC.playing = i + 1
+    } else if (TC.playing === i + 1) {
+      TC.playing = i
+    }
   }
 
   TC.highlight_play()
