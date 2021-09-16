@@ -113,7 +113,13 @@ TC.play = function (i, current_time = -1) {
   }
 
   TC.pause_all()
-  audio.src = TC.get_audio_path(i)
+
+  let path = TC.get_audio_path(i)
+  if (!path) {
+    return
+  }
+  
+  audio.src = path
 
   if (current_time === -1) {
     audio.currentTime = TC.get_current_pos()
