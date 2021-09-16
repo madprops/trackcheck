@@ -1,3 +1,7 @@
+:root {
+  --slidewidth: 600px;
+}
+
 body, html {
   background-color: #1c1c1c;
   color: white;
@@ -52,18 +56,35 @@ body, html {
 }
 
 #progressbar {
-  width: 400px;
+  width: var(--slidewidth);
   margin-left: 2rem;
 }
 
 #controls {
   display: flex;
   flex-direction: row;
-  padding: 2rem;
+  padding-left: 2rem;
+  padding-top: 1rem;
+  padding-bottom: 1.5rem;
 }
 
-#info {
-  padding: 2rem;
-  padding-top: 1rem;
-  font-size: 1.2;
+#marks {
+  width: var(--slidewidth);
+  height: 15px;
+  background-color: rgb(51, 131, 197);
+  margin-left: 2rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+#marks > div {
+  border: 1px solid rgb(66, 41, 90);
+  display: relative;
+}
+
+.active_mark {
+  background-color: #ee7575
 }

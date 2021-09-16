@@ -8,6 +8,7 @@ TC.init = function () {
   TC.create_tracks()
   TC.start_progressbar()
   TC.start_controls()
+  TC.start_marks()
 }
 
 TC.create_tracks = function () {
@@ -161,6 +162,10 @@ TC.update_progressbar = function () {
 }
 
 TC.goto_pos_by_percentage = function (percentage) {
+  if (TC.playing === 0) {
+    return
+  }
+
   let audio = TC.get_current_audio()
   let seconds = (percentage / 100) * audio.duration
   audio.currentTime = seconds
@@ -203,6 +208,11 @@ TC.start_controls = function () {
     audio.currentTime = audio.currentTime + 5
     audio.play()
   })  
+
+  let info = document.querySelector("#ctl_info")
+  info.addEventListener("click", function () {
+    TC.show_info()
+  })    
 }
 
 TC.go_up = function (i) {
@@ -295,4 +305,37 @@ TC.update_track_number = function () {
     number.textContent = `(${i})`
     i += 1
   }
+}
+
+TC.start_marks = function () {
+  let marks = document.querySelector("#marks")
+  let width = 0
+  while (width < marks.clientWidth) {
+    let seg = document.createElement("div")
+    seg.classList.add("mark_segment")
+    seg.style.height = "100%"
+    seg.style.width = "10px"
+    marks.appendChild(seg)
+    width += 10
+  }
+
+  marks.addEventListener("click", (e) => {
+    if (e.target.classList.contains("mark_segment")) {
+      if (e.target.classList.contains("active_mark")) {
+        e.target.classList.remove("active_mark")
+      } else {
+        e.target.classList.add("active_mark")
+      }
+    }
+  })
+}
+
+TC.show_info = function () {
+  let info = `The purpose of this is to compare similar tracks
+For instance if you have two versions/renders of a track
+And you want to check subtle differences
+You can quickly switch between them
+While keeping the progress (time) synched
+The marker above the slider is for you to remember points`
+  alert(info)
 }
