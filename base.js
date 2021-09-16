@@ -288,13 +288,18 @@ TC.go_up = function (i) {
     dir = "wrap_down"
   }
 
-  TC.move_track(TC.get_track(i), dir)
+  let track = TC.get_track(i)
+  TC.move_track(track, dir)
 
   if (TC.playing !== 0) {
     if (TC.playing === i) {
-      TC.playing = i - 1
-    } else if (TC.playing === i - 1) {
-      TC.playing = i
+      TC.playing = i2
+    }
+  }
+
+  if (TC.last_playing !== 0) {
+    if (TC.last_playing === i) {
+      TC.last_playing = i2
     }
   }
 
@@ -308,15 +313,21 @@ TC.go_down = function (i) {
     dir = "wrap_up"
   }
 
-  TC.move_track(TC.get_track(i), dir)
+  let track = TC.get_track(i)
+  TC.move_track(track, dir)
+  let i2 = TC.get_track_index(track)
 
   if (TC.playing !== 0) {
     if (TC.playing === i) {
-      TC.playing = i + 1
-    } else if (TC.playing === i + 1) {
-      TC.playing = i
+      TC.playing = i2
     }
   }
+
+  if (TC.last_playing !== 0) {
+    if (TC.last_playing === i) {
+      TC.last_playing = i2
+    }
+  }  
 
   TC.highlight_play()
   TC.update_track_number()
