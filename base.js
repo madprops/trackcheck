@@ -100,6 +100,13 @@ TC.add_track = function () {
 }
 
 TC.play = function (i, current_time = -1) {
+  if (i === 0) {
+    i = TC.last_playing || TC.get_first_loaded_track()
+    if (i === 0) {
+      return
+    }
+  }
+
   let track = TC.get_track(i)
   let audio = track.querySelector(".audio")
 
@@ -112,13 +119,12 @@ TC.play = function (i, current_time = -1) {
     return
   }
 
-  TC.pause_all()
-
   let path = TC.get_audio_path(i)
   if (!path) {
     return
   }
-  
+
+  TC.pause_all()
   audio.src = path
 
   if (current_time === -1) {
@@ -218,10 +224,11 @@ TC.set_progressbar = function (percentage) {
 
 TC.goto_pos_by_percentage = function (percentage) {
   if (TC.playing === 0) {
-    if (TC.last_playing !== 0) {
-      let audio = TC.get_previous_audio()
+    let i = TC.last_playing || TC.get_first_loaded_track()
+    if (i !== 0) {
+      let audio = TC.get_fallback_audio()
       let seconds = (percentage / 100) * audio.duration
-      TC.play(TC.last_playing, seconds)
+      TC.play(i, seconds)
     }
     return
   } else {
@@ -235,17 +242,16 @@ TC.get_current_audio = function () {
   return TC.get_track(TC.playing).querySelector(".audio")
 }
 
-TC.get_previous_audio = function () {
-  return TC.get_track(TC.last_playing).querySelector(".audio")
+TC.get_fallback_audio = function () {
+  let i = TC.last_playing || TC.get_first_loaded_track()
+  return TC.get_track(i).querySelector(".audio")
 }
 
 TC.start_controls = function () {
   let restart = document.querySelector("#ctl_restart")
   restart.addEventListener("click", function () {
     if (TC.playing === 0) {
-      if (TC.last_playing !== 0) {
-        TC.play(TC.last_playing)
-      }
+      TC.play(0, 0)
       return
     }
     TC.restart()
@@ -254,9 +260,7 @@ TC.start_controls = function () {
   let back = document.querySelector("#ctl_back")
   back.addEventListener("click", function () {
     if (TC.playing === 0) {
-      if (TC.last_playing !== 0) {
-        TC.play(TC.last_playing)
-      }
+      TC.play(0, 0)
       return
     }
     let audio = TC.get_current_audio()
@@ -267,9 +271,7 @@ TC.start_controls = function () {
   let forward = document.querySelector("#ctl_forward")
   forward.addEventListener("click", function () {
     if (TC.playing === 0) {
-      if (TC.last_playing !== 0) {
-        TC.play(TC.last_playing)
-      }
+      TC.play(0, 0)
       return
     }
     let audio = TC.get_current_audio()
@@ -483,20 +485,38 @@ TC.disable_play_button = function (track) {
 }
 
 TC.after_file_change = function (fileinput) {
+  let parent = fileinput.parentNode
+
   if (fileinput.value) {
-    TC.enable_play_button(fileinput.parentNode)
+    TC.enable_play_button(parent)
   } else {
-    TC.disable_play_button(fileinput.parentNode)
+    TC.disable_play_button(parent)
   }
 
-  let audio = fileinput.parentNode.querySelector(".audio")
+  let audio = parent.querySelector(".audio")
   audio.currentTime = 0
 
-  let i = TC.get_track_index(fileinput.parentNode)
+  let i = TC.get_track_index(parent)
   if (i === TC.playing) {
     TC.restart()
   } else if (i === TC.last_playing) {
     TC.last_pos = 0
     TC.set_progressbar(0)
+  } else {
+    let i = TC.get_track_index(parent)
+    audio.src = TC.get_audio_path(i)
   }
+}
+
+TC.get_first_loaded_track = function () {
+  let i = 1
+  let tracks = TC.get_tracks()
+  for (let track of tracks) {
+    let fileinput = track.querySelector(".track_file")
+    if (fileinput.files.length > 0) {
+      return i
+    }
+    i += 1
+  }
+  return 0
 }
