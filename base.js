@@ -313,6 +313,9 @@ TC.move_track = function (elem, direction) {
 
 TC.clear_track_file = function (i) {
   if (confirm("Are you sure?")) {
+    if (TC.playing === i) {
+      TC.play(i)
+    }    
     let input = TC.get_track(i).querySelector(".track_file")
     input.value = []
   }
@@ -401,6 +404,10 @@ TC.unmark = function () {
 
 TC.remove_track = function (track) {
   if (confirm("Are you sure?")) {
+    let i = TC.get_track_index(track)
+    if (TC.playing === i) {
+      TC.play(i)
+    }
     track.parentNode.removeChild(track)
     TC.update_track_number()
   }
