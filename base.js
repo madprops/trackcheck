@@ -2,7 +2,7 @@ const TC = {}
 TC.playing = 0
 TC.last_playing = 0
 TC.last_pos = 0
-TC.max_tracks = 8
+TC.initial_tracks = 4
 
 TC.init = function () {
   TC.create_tracks()
@@ -12,70 +12,83 @@ TC.init = function () {
 }
 
 TC.create_tracks = function () {
-  let tracks = document.getElementById("tracks")
-
-  for (let i=1; i<=TC.max_tracks; i++) {
-    let container = document.createElement("div")
-    container.classList.add("track_container")
-    
-    let number = document.createElement("div")
-    number.classList.add("track_number")
-    number.textContent = `(${i})`
-    
-    let play = document.createElement("div")
-    play.classList.add("track_play")
-    play.classList.add("button")
-    play.textContent = "Play"
-    play.addEventListener("click", function () {
-      TC.play(TC.get_track_index(this.parentNode))
-    })
-
-    let up = document.createElement("div")
-    up.classList.add("track_up")
-    up.classList.add("button")
-    up.textContent = "Up"
-    up.addEventListener("click", function () {
-      TC.go_up(TC.get_track_index(this.parentNode))
-    })
-    
-    let down = document.createElement("div")
-    down.classList.add("track_down")
-    down.classList.add("button")
-    down.textContent = "Down"
-    down.addEventListener("click", function () {
-      TC.go_down(TC.get_track_index(this.parentNode))
-    })
-    
-    let remove = document.createElement("div")
-    remove.classList.add("track_remove")
-    remove.classList.add("button")
-    remove.textContent = "Remove"
-    remove.addEventListener("click", function () {
-      TC.remove_track_file(TC.get_track_index(this.parentNode))
-    })     
-
-    let file = document.createElement("input")
-    file.type = "file"
-    file.classList.add("track_file")
-
-    let audio = document.createElement("audio")
-    audio.classList.add("audio")
-    audio.addEventListener("playing", function () {
-      TC.after_audio_starts(this)
-    })
-    audio.addEventListener("timeupdate", function () {
-      TC.after_audio_plays(this)
-    })
-    
-    container.appendChild(number)
-    container.appendChild(play)
-    container.appendChild(up)
-    container.appendChild(down)
-    container.appendChild(remove)
-    container.appendChild(file)
-    container.appendChild(audio)
-    tracks.appendChild(container)
+  for (let i=1; i<=TC.initial_tracks; i++) {
+    TC.add_track()
   }
+
+  TC.update_track_number()
+}
+
+TC.add_track = function () {
+  let tracks = document.getElementById("tracks")
+  let container = document.createElement("div")
+  container.classList.add("track_container")
+  
+  let number = document.createElement("div")
+  number.classList.add("track_number")
+  
+  let play = document.createElement("div")
+  play.classList.add("track_play")
+  play.classList.add("button")
+  play.textContent = "Play"
+  play.addEventListener("click", function () {
+    TC.play(TC.get_track_index(this.parentNode))
+  })
+
+  let up = document.createElement("div")
+  up.classList.add("track_up")
+  up.classList.add("button")
+  up.textContent = "Up"
+  up.addEventListener("click", function () {
+    TC.go_up(TC.get_track_index(this.parentNode))
+  })
+  
+  let down = document.createElement("div")
+  down.classList.add("track_down")
+  down.classList.add("button")
+  down.textContent = "Down"
+  down.addEventListener("click", function () {
+    TC.go_down(TC.get_track_index(this.parentNode))
+  })
+  
+  let clear = document.createElement("div")
+  clear.classList.add("track_clear")
+  clear.classList.add("button")
+  clear.textContent = "Clear"
+  clear.addEventListener("click", function () {
+    TC.clear_track_file(TC.get_track_index(this.parentNode))
+  })  
+
+  let remove = document.createElement("div")
+  remove.classList.add("track_remove")
+  remove.classList.add("button")
+  remove.textContent = "Remove"
+  remove.addEventListener("click", function () {
+    TC.remove_track(this.closest(".track_container"))
+  })   
+  
+  let file = document.createElement("input")
+  file.type = "file"
+  file.classList.add("track_file")
+
+  let audio = document.createElement("audio")
+  audio.classList.add("audio")
+  audio.addEventListener("playing", function () {
+    TC.after_audio_starts(this)
+  })
+  audio.addEventListener("timeupdate", function () {
+    TC.after_audio_plays(this)
+  })
+  
+  container.appendChild(number)
+  container.appendChild(play)
+  container.appendChild(up)
+  container.appendChild(down)
+  container.appendChild(clear)
+  container.appendChild(remove)
+  container.appendChild(file)
+  container.appendChild(audio)
+  tracks.appendChild(container)
 }
 
 TC.play = function (i) {
@@ -220,6 +233,12 @@ TC.start_controls = function () {
     TC.unmark()
   })    
 
+  let add_track = document.querySelector("#ctl_add_track")
+  add_track.addEventListener("click", function () {
+    TC.add_track()
+    TC.update_track_number()
+  })  
+
   let info = document.querySelector("#ctl_info")
   info.addEventListener("click", function () {
     TC.show_info()
@@ -244,7 +263,7 @@ TC.go_up = function (i) {
 }
 
 TC.go_down = function (i) {
-  if (i >= TC.max_tracks) {
+  if (i >= TC.get_tracks().length) {
     return
   }
   
@@ -270,7 +289,7 @@ TC.move_track = function (elem, direction) {
   }
 }
 
-TC.remove_track_file = function (i) {
+TC.clear_track_file = function (i) {
   if (confirm("Are you sure?")) {
     let input = TC.get_track(i).querySelector(".track_file")
     input.value = []
@@ -330,7 +349,7 @@ TC.start_marks = function () {
     width += 10
   }
 
-  marks.addEventListener("click", (e) => {
+  marks.addEventListener("mousedown", (e) => {
     if (e.target.classList.contains("mark_segment")) {
       if (e.target.classList.contains("active_mark")) {
         e.target.classList.remove("active_mark")
@@ -355,5 +374,11 @@ TC.unmark = function () {
   let segs = Array.from(document.querySelectorAll(".mark_segment"))
   for (let seg of segs) {
     seg.classList.remove("active_mark")
+  }
+}
+
+TC.remove_track = function (track) {
+  if (confirm("Are you sure?")) {
+    track.parentNode.removeChild(track)
   }
 }
