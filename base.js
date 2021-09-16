@@ -457,6 +457,10 @@ TC.unmark = function () {
 }
 
 TC.remove_track = function (track) {
+  if (TC.get_tracks().length === 1) {
+    return
+  }
+  
   if (!TC.track_loaded(track) || confirm("Are you sure?")) {
     let i = TC.get_track_index(track)
     if (TC.playing === i) {
