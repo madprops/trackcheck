@@ -3,6 +3,7 @@ TC.playing = 0
 TC.last_playing = 0
 TC.last_pos = 0
 TC.initial_tracks = 4
+TC.prog_mouse_down = false
 
 TC.init = function () {
   TC.create_tracks()
@@ -91,7 +92,7 @@ TC.add_track = function () {
   tracks.appendChild(container)
 }
 
-TC.play = function (i) {
+TC.play = function (i, current_time = -1) {
   let track = TC.get_track(i)
   let audio = track.querySelector(".audio")
   let fileinput = track.querySelector(".track_file")
@@ -115,7 +116,13 @@ TC.play = function (i) {
   TC.pause_all() 
   
   audio.src = path
-  audio.currentTime = TC.get_current_pos()
+
+  if (current_time === -1) {
+    audio.currentTime = TC.get_current_pos()
+  } else {
+    audio.currentTime = current_time
+  }
+
   audio.play()
   TC.playing = i
 
@@ -161,10 +168,16 @@ TC.start_progressbar = function () {
   prog.addEventListener("change", function () {
     TC.goto_pos_by_percentage(this.value)
   })
+  prog.addEventListener("mousedown", function () {
+    TC.prog_mouse_down = true
+  })
+  prog.addEventListener("mouseup", function () {
+    TC.prog_mouse_down = false
+  })  
 }
 
 TC.update_progressbar = function () {
-  if (TC.playing === 0) {
+  if (TC.playing === 0 || TC.prog_mouse_down) {
     return
   }
 
@@ -176,16 +189,25 @@ TC.update_progressbar = function () {
 
 TC.goto_pos_by_percentage = function (percentage) {
   if (TC.playing === 0) {
+    if (TC.last_playing !== 0) {
+      let audio = TC.get_previous_audio()
+      let seconds = (percentage / 100) * audio.duration 
+      TC.play(TC.last_playing, seconds)   
+    }
     return
+  } else {
+    let audio = TC.get_current_audio()
+    let seconds = (percentage / 100) * audio.duration    
+    audio.currentTime = seconds
   }
-
-  let audio = TC.get_current_audio()
-  let seconds = (percentage / 100) * audio.duration
-  audio.currentTime = seconds
 }
 
 TC.get_current_audio = function () {
   return TC.get_track(TC.playing).querySelector(".audio")
+}
+
+TC.get_previous_audio = function () {
+  return TC.get_track(TC.last_playing).querySelector(".audio")
 }
 
 TC.start_controls = function () {
