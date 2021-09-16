@@ -70,7 +70,7 @@ body, html {
 
 #marks {
   width: var(--slidewidth);
-  height: 15px;
+  height: 20px;
   background-color: rgb(51, 131, 197);
   margin-left: 2rem;
   margin-bottom: 0.5rem;

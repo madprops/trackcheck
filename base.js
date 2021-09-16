@@ -209,6 +209,11 @@ TC.start_controls = function () {
     audio.play()
   })  
 
+  let unmark = document.querySelector("#ctl_unmark")
+  unmark.addEventListener("click", function () {
+    TC.unmark()
+  })    
+
   let info = document.querySelector("#ctl_info")
   info.addEventListener("click", function () {
     TC.show_info()
@@ -338,4 +343,11 @@ You can quickly switch between them
 While keeping the progress (time) synched
 The marker above the slider is for you to remember points`
   alert(info)
+}
+
+TC.unmark = function () {
+  let segs = Array.from(document.querySelectorAll(".mark_segment"))
+  for (let seg of segs) {
+    seg.classList.remove("active_mark")
+  }
 }
