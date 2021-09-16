@@ -380,5 +380,6 @@ TC.unmark = function () {
 TC.remove_track = function (track) {
   if (confirm("Are you sure?")) {
     track.parentNode.removeChild(track)
+    TC.update_track_number()
   }
 }
