@@ -89,3 +89,12 @@ body, html {
 .active_mark {
   background-color: #ee7575
 }
+
+.button_disabled {
+  opacity: 0.7;
+}
+
+.button_disabled:hover {
+  box-shadow: initial;
+  cursor: initial;
+}

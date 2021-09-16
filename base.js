@@ -24,12 +24,13 @@ TC.add_track = function () {
   let tracks = document.getElementById("tracks")
   let container = document.createElement("div")
   container.classList.add("track_container")
-  
+
   let number = document.createElement("div")
   number.classList.add("track_number")
-  
+
   let play = document.createElement("div")
   play.classList.add("track_play")
+  play.classList.add("track_play_disabled")
   play.classList.add("button")
   play.textContent = "Play"
   play.addEventListener("click", function () {
@@ -43,7 +44,7 @@ TC.add_track = function () {
   up.addEventListener("click", function () {
     TC.go_up(TC.get_track_index(this.parentNode))
   })
-  
+
   let down = document.createElement("div")
   down.classList.add("track_down")
   down.classList.add("button")
@@ -51,14 +52,14 @@ TC.add_track = function () {
   down.addEventListener("click", function () {
     TC.go_down(TC.get_track_index(this.parentNode))
   })
-  
+
   let clear = document.createElement("div")
   clear.classList.add("track_clear")
   clear.classList.add("button")
   clear.textContent = "Clear"
   clear.addEventListener("click", function () {
     TC.clear_track_file(TC.get_track_index(this.parentNode))
-  })  
+  })
 
   let remove = document.createElement("div")
   remove.classList.add("track_remove")
@@ -66,11 +67,18 @@ TC.add_track = function () {
   remove.textContent = "Remove"
   remove.addEventListener("click", function () {
     TC.remove_track(this.closest(".track_container"))
-  })   
-  
+  })
+
   let file = document.createElement("input")
   file.type = "file"
   file.classList.add("track_file")
+  file.addEventListener("change", function () {
+    if (this.value) {
+      TC.enable_play_button(this.parentNode)
+    } else {
+      TC.disable_play_button(this.parentNode)
+    }
+  })
 
   let audio = document.createElement("audio")
   audio.classList.add("audio")
@@ -80,7 +88,10 @@ TC.add_track = function () {
   audio.addEventListener("timeupdate", function () {
     TC.after_audio_plays(this)
   })
-  
+  audio.addEventListener("ended", function () {
+    TC.after_audio_ends(this)
+  })
+
   container.appendChild(number)
   container.appendChild(play)
   container.appendChild(up)
@@ -107,14 +118,14 @@ TC.play = function (i, current_time = -1) {
   }
 
   let files = fileinput.files
-  
+
   if (files.length === 0) {
     return
   }
 
   let path = URL.createObjectURL(files[0])
-  TC.pause_all() 
-  
+  TC.pause_all()
+
   audio.src = path
 
   if (current_time === -1) {
@@ -140,7 +151,7 @@ TC.get_current_pos = function () {
   if (TC.playing === 0) {
     return TC.last_pos
   }
-  
+
   let track = TC.get_track(TC.playing)
   let audio = track.querySelector(".audio")
   return audio.currentTime
@@ -162,6 +173,12 @@ TC.after_audio_plays = function (audio) {
   TC.update_progressbar()
 }
 
+TC.after_audio_ends = function (audio) {
+  if (TC.playing !== 0) {
+    TC.restart()
+  }
+}
+
 TC.start_progressbar = function () {
   let prog = document.querySelector("#progressbar")
   prog.value = 0
@@ -173,7 +190,7 @@ TC.start_progressbar = function () {
   })
   prog.addEventListener("mouseup", function () {
     TC.prog_mouse_down = false
-  })  
+  })
 }
 
 TC.update_progressbar = function () {
@@ -191,13 +208,13 @@ TC.goto_pos_by_percentage = function (percentage) {
   if (TC.playing === 0) {
     if (TC.last_playing !== 0) {
       let audio = TC.get_previous_audio()
-      let seconds = (percentage / 100) * audio.duration 
-      TC.play(TC.last_playing, seconds)   
+      let seconds = (percentage / 100) * audio.duration
+      TC.play(TC.last_playing, seconds)
     }
     return
   } else {
     let audio = TC.get_current_audio()
-    let seconds = (percentage / 100) * audio.duration    
+    let seconds = (percentage / 100) * audio.duration
     audio.currentTime = seconds
   }
 }
@@ -218,10 +235,8 @@ TC.start_controls = function () {
         TC.play(TC.last_playing)
       }
       return
-    }    
-    let audio = TC.get_current_audio()
-    audio.currentTime = 0
-    audio.play()
+    }
+    TC.restart()
   })
 
   let back = document.querySelector("#ctl_back")
@@ -231,12 +246,12 @@ TC.start_controls = function () {
         TC.play(TC.last_playing)
       }
       return
-    }     
+    }
     let audio = TC.get_current_audio()
     audio.currentTime = audio.currentTime - 5
     audio.play()
   })
-  
+
   let forward = document.querySelector("#ctl_forward")
   forward.addEventListener("click", function () {
     if (TC.playing === 0) {
@@ -244,35 +259,36 @@ TC.start_controls = function () {
         TC.play(TC.last_playing)
       }
       return
-    }   
+    }
     let audio = TC.get_current_audio()
     audio.currentTime = audio.currentTime + 5
     audio.play()
-  })  
+  })
 
   let unmark = document.querySelector("#ctl_unmark")
   unmark.addEventListener("click", function () {
     TC.unmark()
-  })    
+  })
 
   let add_track = document.querySelector("#ctl_add_track")
   add_track.addEventListener("click", function () {
     TC.add_track()
     TC.update_track_number()
-  })  
+  })
 
   let info = document.querySelector("#ctl_info")
   info.addEventListener("click", function () {
     TC.show_info()
-  })    
+  })
 }
 
 TC.go_up = function (i) {
+  let dir = "up"
   if (i <= 1) {
-    return
+    dir = "wrap_down"
   }
 
-  TC.move_track(TC.get_track(i), "up")
+  TC.move_track(TC.get_track(i), dir)
 
   if (TC.playing === i) {
     TC.playing = i - 1
@@ -285,11 +301,12 @@ TC.go_up = function (i) {
 }
 
 TC.go_down = function (i) {
+  let dir = "down"
   if (i >= TC.get_tracks().length) {
-    return
+    dir = "wrap_up"
   }
-  
-  TC.move_track(TC.get_track(i), "down")
+
+  TC.move_track(TC.get_track(i), dir)
 
   if (TC.playing === i) {
     TC.playing = i + 1
@@ -301,13 +318,17 @@ TC.go_down = function (i) {
   TC.update_track_number()
 }
 
-TC.move_track = function (elem, direction) {
+TC.move_track = function (elem, dir) {
   let parent = elem.parentNode
 
-  if (direction === "up" && elem.previousElementSibling) {
+  if (dir === "up" && elem.previousElementSibling) {
     parent.insertBefore(elem, elem.previousElementSibling)
-  } else if (direction === "down" && elem.nextElementSibling) {
+  } else if (dir === "down" && elem.nextElementSibling) {
     parent.insertBefore(elem, elem.nextElementSibling.nextElementSibling)
+  } else if (dir === "wrap_down" && elem.nextElementSibling) {
+    parent.appendChild(elem)
+  } else if (dir === "wrap_up" && elem.previousElementSibling) {
+    parent.prepend(elem)
   }
 }
 
@@ -315,9 +336,11 @@ TC.clear_track_file = function (i) {
   if (confirm("Are you sure?")) {
     if (TC.playing === i) {
       TC.play(i)
-    }    
-    let input = TC.get_track(i).querySelector(".track_file")
+    }
+    let track = TC.get_track(i)
+    let input = track.querySelector(".track_file")
     input.value = []
+    TC.disable_play_button(track)
   }
 }
 
@@ -326,7 +349,7 @@ TC.highlight_play = function () {
   for (let button of buttons) {
     button.classList.remove("button_active")
   }
-  
+
   if (TC.playing > 0) {
     let playbutton = TC.get_track(TC.playing).querySelector(".track_play")
     playbutton.classList.add("button_active")
@@ -411,4 +434,20 @@ TC.remove_track = function (track) {
     track.parentNode.removeChild(track)
     TC.update_track_number()
   }
+}
+
+TC.restart = function () {
+  let audio = TC.get_current_audio()
+  audio.currentTime = 0
+  audio.play()
+}
+
+TC.enable_play_button = function (track) {
+  let play = track.querySelector(".track_play")
+  play.classList.remove("button_disabled")
+}
+
+TC.disable_play_button = function (track) {
+  let play = track.querySelector(".track_play")
+  play.classList.add("button_disabled")
 }
