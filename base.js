@@ -112,7 +112,7 @@ TC.play = function (i, current_time = -1) {
   let track = TC.get_track(i)
   let audio = track.querySelector(".audio")
 
-  if (i === TC.playing) {
+  if (i === TC.playing && current_time == -1) {
     TC.last_playing = TC.playing
     TC.playing = 0
     TC.last_pos = audio.currentTime
@@ -186,9 +186,7 @@ TC.after_audio_plays = function (audio) {
 }
 
 TC.after_audio_ends = function (audio) {
-  if (TC.playing !== 0) {
-    TC.restart()
-  }
+  TC.restart()
 }
 
 TC.start_progressbar = function () {
@@ -198,13 +196,7 @@ TC.start_progressbar = function () {
     TC.goto_pos_by_percentage(this.value)
   })
   prog.addEventListener("input", function () {
-    let [audio, i] = TC.get_proper_audio()
-    if (!audio) {
-      return
-    }
-    let preview = document.querySelector("#progress_preview")
-    let seconds = (this.value / 100) * audio.duration
-    preview.textContent = `(${TC.format_time(seconds)})`
+    TC.show_progressbar_preview(this)
   })
   prog.addEventListener("mousedown", function () {
     TC.prog_mouse_down = true
@@ -246,6 +238,7 @@ TC.set_progressbar = function (percentage) {
 TC.goto_pos_by_percentage = function (percentage) {
   let [audio, i] = TC.get_proper_audio()
   if (!audio) {
+    TC.set_progressbar(0)
     return
   }
 
@@ -256,6 +249,18 @@ TC.goto_pos_by_percentage = function (percentage) {
   } else {
     audio.currentTime = seconds
   }
+}
+
+TC.show_progressbar_preview = function (pb) {
+  let [audio, i] = TC.get_proper_audio()
+  if (!audio) {
+    TC.set_progressbar(0)
+    return
+  }
+
+  let preview = document.querySelector("#progress_preview")
+  let seconds = (pb.value / 100) * audio.duration
+  preview.textContent = `(${TC.format_time(seconds)})`
 }
 
 TC.get_current_audio = function () {
@@ -274,10 +279,6 @@ TC.get_proper_audio = function () {
 TC.start_controls = function () {
   let restart = document.querySelector("#ctl_restart")
   restart.addEventListener("click", function () {
-    if (TC.playing === 0) {
-      TC.play(0, 0)
-      return
-    }
     TC.restart()
   })
 
@@ -489,10 +490,17 @@ TC.remove_track = function (track) {
 }
 
 TC.restart = function () {
-  let audio = TC.get_current_audio()
-  audio.src = TC.get_audio_path(TC.playing)
-  audio.currentTime = 0
-  audio.play()
+  let [audio, i] = TC.get_proper_audio()
+  if (!audio) {
+    return
+  }
+
+  if (i !== TC.playing) {
+    TC.play(i, 0)
+  } else {
+    audio.currentTime = 0
+  }
+
   TC.set_progressbar(0)
 }
 
@@ -516,18 +524,10 @@ TC.after_file_change = function (fileinput) {
   }
 
   let audio = parent.querySelector(".audio")
-  audio.currentTime = 0
-
   let i = TC.get_track_index(parent)
-  if (i === TC.playing) {
-    TC.restart()
-  } else if (i === TC.last_playing) {
-    TC.last_pos = 0
-    TC.set_progressbar(0)
-  } else {
-    let i = TC.get_track_index(parent)
-    audio.src = TC.get_audio_path(i)
-  }
+  audio.currentTime = 0
+  audio.src = TC.get_audio_path(i)
+  TC.play(i, 0)
 }
 
 TC.get_first_loaded_track = function () {
