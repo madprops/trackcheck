@@ -218,7 +218,7 @@ TC.update_progressbar = () => {
 
 TC.get_percentage = () => {
   let [audio, i] = TC.get_proper_audio()
-  return parseInt((audio.currentTime / audio.duration) * 100)
+  return (audio.currentTime / audio.duration) * 100
 }
 
 TC.get_pb_percentage = () => {
