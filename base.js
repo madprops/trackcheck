@@ -87,7 +87,7 @@ TC.add_track = function () {
     TC.after_audio_plays(this)
   })
   audio.addEventListener("ended", function () {
-    TC.after_audio_ends(this)
+    TC.after_audio_ends()
   })
 
   container.appendChild(number)
@@ -499,6 +499,7 @@ TC.restart = function () {
     TC.play(i, 0)
   } else {
     audio.currentTime = 0
+    audio.play()
   }
 
   TC.set_progressbar(0)
