@@ -195,11 +195,22 @@ TC.start_progressbar = function () {
   prog.addEventListener("change", function () {
     TC.goto_pos_by_percentage(this.value)
   })
+  prog.addEventListener("input", function () {
+    let [audio, i] = TC.get_proper_audio()
+    if (!audio) {
+      return
+    }
+    let preview = document.querySelector("#progress_preview")
+    let seconds = (this.value / 100) * audio.duration
+    preview.textContent = `(${TC.format_time(seconds)})`
+  })  
   prog.addEventListener("mousedown", function () {
     TC.prog_mouse_down = true
   })
   prog.addEventListener("mouseup", function () {
     TC.prog_mouse_down = false
+    let preview = document.querySelector("#progress_preview")
+    preview.textContent = ""
   })
 }
 
@@ -223,17 +234,16 @@ TC.set_progressbar = function (percentage) {
 }
 
 TC.goto_pos_by_percentage = function (percentage) {
-  if (TC.playing === 0) {
-    let i = TC.last_playing || TC.get_first_loaded_track()
-    if (i !== 0) {
-      let audio = TC.get_fallback_audio()
-      let seconds = (percentage / 100) * audio.duration
-      TC.play(i, seconds)
-    }
+  let [audio, i] = TC.get_proper_audio()
+  if (!audio) {
     return
+  }
+  
+  let seconds = (percentage / 100) * audio.duration
+
+  if (i !== TC.playing) {
+    TC.play(i, seconds)
   } else {
-    let audio = TC.get_current_audio()
-    let seconds = (percentage / 100) * audio.duration
     audio.currentTime = seconds
   }
 }
@@ -242,9 +252,13 @@ TC.get_current_audio = function () {
   return TC.get_track(TC.playing).querySelector(".audio")
 }
 
-TC.get_fallback_audio = function () {
-  let i = TC.last_playing || TC.get_first_loaded_track()
-  return TC.get_track(i).querySelector(".audio")
+TC.get_proper_audio = function () {
+  let i = TC.playing || TC.last_playing || TC.get_first_loaded_track() || 0
+  let audio = false
+  if (i > 0) {
+    audio = TC.get_track(i).querySelector(".audio")
+  }
+  return [audio, i]
 }
 
 TC.start_controls = function () {
@@ -259,24 +273,34 @@ TC.start_controls = function () {
 
   let back = document.querySelector("#ctl_back")
   back.addEventListener("click", function () {
-    if (TC.playing === 0) {
-      TC.play(0, 0)
+    let [audio, i] = TC.get_proper_audio()
+    if (!audio) {
       return
     }
-    let audio = TC.get_current_audio()
-    audio.currentTime = audio.currentTime - 5
-    audio.play()
+
+    let seconds = audio.currentTime - 5
+
+    if (i !== TC.playing) {
+      TC.play(i, seconds)
+    } else {
+      audio.currentTime = seconds
+    }
   })
 
   let forward = document.querySelector("#ctl_forward")
   forward.addEventListener("click", function () {
-    if (TC.playing === 0) {
-      TC.play(0, 0)
+    let [audio, i] = TC.get_proper_audio()
+    if (!audio) {
       return
     }
-    let audio = TC.get_current_audio()
-    audio.currentTime = audio.currentTime + 5
-    audio.play()
+
+    let seconds = audio.currentTime + 5
+
+    if (i !== TC.playing) {
+      TC.play(i, seconds)
+    } else {
+      audio.currentTime = seconds
+    }
   })
 
   let unmark = document.querySelector("#ctl_unmark")
