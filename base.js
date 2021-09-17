@@ -657,5 +657,13 @@ TC.check_if_loaded = function () {
   if (none_active) {
     TC.last_playing = 0
     TC.set_progressbar(0)
+    TC.reset_times()
   }  
+}
+
+TC.reset_times = function () {
+  let total = document.querySelector("#progress_total")
+  total.textContent = TC.format_time(0)
+  let current = document.querySelector("#progress_current")
+  current.textContent = TC.format_time(0)
 }
