@@ -434,11 +434,11 @@ TC.start_marks = () => {
   let marks = document.querySelector("#marks")
   let width = 0
   while (width < marks.clientWidth) {
-    let seg = document.createElement("div")
-    seg.classList.add("mark_segment")
-    seg.style.height = "100%"
-    seg.style.width = `${TC.mark_width}px`
-    marks.appendChild(seg)
+    let mark = document.createElement("div")
+    mark.classList.add("mark")
+    mark.style.height = "100%"
+    mark.style.width = `${TC.mark_width}px`
+    marks.appendChild(mark)
     width += TC.mark_width
   }
 
@@ -458,7 +458,7 @@ The markers above the slider are for you to remember points`
 }
 
 TC.toggle_mark = (mark) => {
-  if (mark.classList.contains("mark_segment")) {
+  if (mark.classList.contains("mark")) {
     if (mark.classList.contains("active_mark")) {
       mark.classList.remove("active_mark")
     } else {
@@ -468,9 +468,11 @@ TC.toggle_mark = (mark) => {
 }
 
 TC.unmark = () => {
-  let segs = Array.from(document.querySelectorAll(".mark_segment"))
-  for (let seg of segs) {
-    seg.classList.remove("active_mark")
+  let marks = Array.from(document.querySelectorAll(".active_mark"))
+  if (marks.length > 0 && confirm("Are you sure?")) {
+    for (let mark of marks) {
+      mark.classList.remove("active_mark")
+    }
   }
 }
 
