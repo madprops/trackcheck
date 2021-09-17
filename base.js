@@ -455,6 +455,16 @@ The markers above the slider are for you to remember points`
   alert(info)
 }
 
+TC.toggle_mark = function (mark) {
+  if (mark.classList.contains("mark_segment")) {
+    if (mark.classList.contains("active_mark")) {
+      mark.classList.remove("active_mark")
+    } else {
+      mark.classList.add("active_mark")
+    }
+  }
+}
+
 TC.unmark = function () {
   let segs = Array.from(document.querySelectorAll(".mark_segment"))
   for (let seg of segs) {
