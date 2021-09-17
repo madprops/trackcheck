@@ -385,6 +385,7 @@ TC.clear_track_file = function (i) {
     let input = track.querySelector(".track_file")
     input.value = []
     TC.disable_play_button(track)
+    TC.check_if_loaded()
   }
 }
 
@@ -484,8 +485,10 @@ TC.remove_track = function (track) {
       TC.play(i)
       TC.set_progressbar(0)
     }
+    TC.last_playing = 0
     track.parentNode.removeChild(track)
     TC.update_track_number()
+    TC.check_if_loaded()
   }
 }
 
@@ -641,4 +644,18 @@ TC.goto_next_track = function () {
   }
 
   TC.goto_prev_track()
+}
+
+TC.check_if_loaded = function () {
+  let none_active = true
+  for (let t of TC.get_tracks()) {
+    if (TC.track_loaded(t)) {
+      none_active = false
+      break
+    }
+  }
+  if (none_active) {
+    TC.last_playing = 0
+    TC.set_progressbar(0)
+  }  
 }
