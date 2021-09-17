@@ -4,12 +4,14 @@ TC.last_playing = 0
 TC.last_pos = 0
 TC.initial_tracks = 4
 TC.prog_mouse_down = false
+TC.mark_width = 10
 
 TC.init = function () {
   TC.create_tracks()
   TC.start_progressbar()
   TC.start_controls()
   TC.start_marks()
+  TC.start_key_detection()
 }
 
 TC.create_tracks = function () {
@@ -101,7 +103,7 @@ TC.add_track = function () {
 
 TC.play = function (i, current_time = -1) {
   if (i === 0) {
-    i = TC.last_playing || TC.get_first_loaded_track()
+    [ax, i] = TC.get_proper_audio()
     if (i === 0) {
       return
     }
@@ -203,7 +205,7 @@ TC.start_progressbar = function () {
     let preview = document.querySelector("#progress_preview")
     let seconds = (this.value / 100) * audio.duration
     preview.textContent = `(${TC.format_time(seconds)})`
-  })  
+  })
   prog.addEventListener("mousedown", function () {
     TC.prog_mouse_down = true
   })
@@ -219,9 +221,17 @@ TC.update_progressbar = function () {
     return
   }
 
-  let audio = TC.get_current_audio()
-  let percentage = parseInt((audio.currentTime / audio.duration) * 100)
-  TC.set_progressbar(percentage)
+  TC.set_progressbar(TC.get_percentage())
+}
+
+TC.get_percentage = function () {
+  let [audio, i] = TC.get_proper_audio()
+  return parseInt((audio.currentTime / audio.duration) * 100)
+}
+
+TC.get_pb_percentage = function () {
+  let prog = document.querySelector("#progressbar")
+  return prog.value
 }
 
 TC.set_progressbar = function (percentage) {
@@ -238,7 +248,7 @@ TC.goto_pos_by_percentage = function (percentage) {
   if (!audio) {
     return
   }
-  
+
   let seconds = (percentage / 100) * audio.duration
 
   if (i !== TC.playing) {
@@ -273,34 +283,12 @@ TC.start_controls = function () {
 
   let back = document.querySelector("#ctl_back")
   back.addEventListener("click", function () {
-    let [audio, i] = TC.get_proper_audio()
-    if (!audio) {
-      return
-    }
-
-    let seconds = audio.currentTime - 5
-
-    if (i !== TC.playing) {
-      TC.play(i, seconds)
-    } else {
-      audio.currentTime = seconds
-    }
+    TC.go_back()
   })
 
   let forward = document.querySelector("#ctl_forward")
   forward.addEventListener("click", function () {
-    let [audio, i] = TC.get_proper_audio()
-    if (!audio) {
-      return
-    }
-
-    let seconds = audio.currentTime + 5
-
-    if (i !== TC.playing) {
-      TC.play(i, seconds)
-    } else {
-      audio.currentTime = seconds
-    }
+    TC.go_forward()
   })
 
   let unmark = document.querySelector("#ctl_unmark")
@@ -447,19 +435,13 @@ TC.start_marks = function () {
     let seg = document.createElement("div")
     seg.classList.add("mark_segment")
     seg.style.height = "100%"
-    seg.style.width = "10px"
+    seg.style.width = `${TC.mark_width}px`
     marks.appendChild(seg)
-    width += 10
+    width += TC.mark_width
   }
 
   marks.addEventListener("mousedown", (e) => {
-    if (e.target.classList.contains("mark_segment")) {
-      if (e.target.classList.contains("active_mark")) {
-        e.target.classList.remove("active_mark")
-      } else {
-        e.target.classList.add("active_mark")
-      }
-    }
+    TC.toggle_mark(e.target)
   })
 }
 
@@ -484,7 +466,7 @@ TC.remove_track = function (track) {
   if (TC.get_tracks().length === 1) {
     return
   }
-  
+
   if (!TC.track_loaded(track) || confirm("Are you sure?")) {
     let i = TC.get_track_index(track)
     if (TC.playing === i) {
@@ -553,4 +535,85 @@ TC.get_first_loaded_track = function () {
 TC.track_loaded = function (track) {
   let fileinput = track.querySelector(".track_file")
   return fileinput.files.length > 0
+}
+
+TC.start_key_detection = function () {
+  document.addEventListener("keydown", function (e) {
+    if (e.key === " ") {
+      TC.play(0)
+      e.preventDefault()
+    } else if (e.key === "ArrowLeft") {
+      TC.go_back()
+      e.preventDefault()
+    } else if (e.key === "ArrowRight") {
+      TC.go_forward()
+      e.preventDefault()
+    } else if (e.key === "ArrowUp") {
+      TC.goto_prev_track()
+      e.preventDefault()
+    } else if (e.key === "ArrowDown") {
+      TC.goto_next_track()
+      e.preventDefault()
+    }
+  })
+}
+
+TC.go_back = function () {
+  let [audio, i] = TC.get_proper_audio()
+  if (!audio) {
+    return
+  }
+
+  let seconds = audio.currentTime - 5
+
+  if (i !== TC.playing) {
+    TC.play(i, seconds)
+  } else {
+    audio.currentTime = seconds
+  }
+}
+
+TC.go_forward = function () {
+  let [audio, i] = TC.get_proper_audio()
+  if (!audio) {
+    return
+  }
+
+  let seconds = audio.currentTime + 5
+
+  if (i !== TC.playing) {
+    TC.play(i, seconds)
+  } else {
+    audio.currentTime = seconds
+  }
+}
+
+TC.goto_prev_track = function () {
+  let [audio, i] = TC.get_proper_audio()
+  let tracks = TC.get_tracks()
+  for (let i2=tracks.length - 1; i2>=0; i2--) {
+    if (i2 < (i - 1)) {
+      if (TC.track_loaded(tracks[i2])) {
+        TC.play(i2 + 1)
+        return
+      }
+    }
+  }
+
+  TC.goto_next_track()
+}
+
+TC.goto_next_track = function () {
+  let [audio, i] = TC.get_proper_audio()
+  let tracks = TC.get_tracks()
+  for (let i2=0; i2<tracks.length; i2++) {
+    if (i2 > (i - 1)) {
+      if (TC.track_loaded(tracks[i2])) {
+        TC.play(i2 + 1)
+        return
+      }
+    }
+  }
+
+  TC.goto_prev_track()
 }
