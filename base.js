@@ -611,9 +611,11 @@ TC.goto_prev_track = function () {
     }
   }
   for (let i2=tracks.length - 1; i2>=0; i2--) {
-    if (TC.track_loaded(tracks[i2])) {
-      TC.play(i2 + 1)
-      return
+    if (i2 !== (i - 1)) {
+      if (TC.track_loaded(tracks[i2])) {
+        TC.play(i2 + 1)
+        return
+      }
     }
   }
 }
@@ -631,8 +633,10 @@ TC.goto_next_track = function () {
   }
   for (let i2=0; i2<tracks.length; i2++) {
     if (TC.track_loaded(tracks[i2])) {
-      TC.play(i2 + 1)
-      return
+      if (i2 !== (i - 1)) {
+        TC.play(i2 + 1)
+        return
+      }
     }
   }
 
