@@ -227,10 +227,13 @@ TC.start_progressbar = () => {
     TC.show_progressbar_preview(e)
   })
 
-  window.addEventListener(`mouseup`, () => {
-    TC.prog_mouse_down = false
+  canvas.addEventListener(`mouseleave`, e => {
     let preview = document.querySelector(`#progress_preview`)
     preview.textContent = ``
+  })
+
+  window.addEventListener(`mouseup`, () => {
+    TC.prog_mouse_down = false
   })
 }
 
