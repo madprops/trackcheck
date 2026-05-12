@@ -75,9 +75,13 @@ body, html {
   font-size: 1.4rem;
 }
 
-#progressbar {
+#main_waveform {
   width: var(--slidewidth);
+  height: 40px;
   margin-left: 2rem;
+  background-color: #111;
+  border: 1px solid #555;
+  cursor: pointer;
 }
 
 #controls {
