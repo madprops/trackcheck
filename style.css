@@ -20,6 +20,13 @@ body, html {
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
+  transition: background-color 0.2s ease;
+  padding: 0.5rem;
+}
+
+.track_active {
+  background-color: rgba(61, 174, 233, 0.15);
+  border-radius: 4px;
 }
 
 .track_number {
@@ -29,6 +36,18 @@ body, html {
 
 .track_file {
   margin-left: 1rem;
+  transition: filter 0.3s ease;
+}
+
+.track_volume {
+  width: 80px;
+  margin-left: 1rem;
+  cursor: pointer;
+}
+
+.blind_mode .track_file {
+  filter: blur(8px);
+  pointer-events: none;
 }
 
 .button {
